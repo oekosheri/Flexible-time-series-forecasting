@@ -5,20 +5,13 @@ import matplotlib.pyplot as plt
 from data.create_datasets import WindowGenerator
 
 
-def any_model(window, model, X, y, test_data):
-
-    X, y, data = in_reshape(X), in_reshape(y), in_reshape(test_data)
-    model.fit(X, y)
-    return out_reshape(window=window, data=model.predict(data))
-
-
 def in_reshape(data):
     """converting 3d array to 2d array for ML classic models"""
     dim_0 = data.shape[0]
     return np.reshape(data, (dim_0, -1))
 
 
-def out_reshape(window=window, data=None):
+def out_reshape(data, window=None):
     """converting 2d model results to 3d array"""
     return np.reshape(
         data, (data.shape[0], window.label_width, window.number_label_features)
@@ -62,33 +55,27 @@ class Direct_Forecast:
         self.predictions = {}
 
         for i in range(self.output_time_step):
-            self.models[i] = model(window=self.windows[i])
-            print("Model on time step {} is being trained!".format(i + 1))
+
             input_train, label_train = (
                 self.datasets["input_train_" + str(i)],
                 self.datasets["label_train_" + str(i)],
             )
-            input_val, label_val = (
-                self.datasets["input_val_" + str(i)],
-                self.datasets["label_val_" + str(i)],
-            )
+
             input_test, label_test = (
                 self.datasets["input_test_" + str(i)],
                 self.datasets["label_test_" + str(i)],
             )
-            self.history[i] = compile_and_fit(
-                self.models[i],
-                X=input_train,
-                y=label_train,
-                val_X=input_val,
-                val_y=label_val,
-                patience=patience,
-                batch_size=batch_size,
-                max_epochs=max_epochs,
+
+            self.models[i] = model.fit(in_reshape(input_train), in_reshape(label_train))
+            print("Model on time step {} is being trained!".format(i + 1))
+
+            self.predictions["train_" + str(i)] = out_reshape(
+                self.models[i].predict(in_reshape(input_train)), window=self.windows[i]
             )
-            self.predictions["train_" + str(i)] = self.models[i].predict(input_train)
-            self.predictions["val_" + str(i)] = self.models[i].predict(input_val)
-            self.predictions["test_" + str(i)] = self.models[i].predict(input_test)
+
+            self.predictions["test_" + str(i)] = out_reshape(
+                self.models[i].predict(in_reshape(input_test)), window=self.windows[i]
+            )
 
     def direct_predictions(self, data="train"):
         dim1, _, dim2 = self.predictions[
@@ -152,6 +139,133 @@ class Direct_Forecast:
             self.prediction[-1, :, label_col_index],
             "ro",
             label="predictions",
+        )
+        ax.legend(loc="best")
+        ax.set_xlabel("time index")
+        ax.set_ylabel(plot_col)
+
+
+class Recursive_Forecast(WindowGenerator):
+    def __init__(
+        self,
+        output_time_step=15,
+        input_width=24,
+        feature_columns=None,
+        label_columns=None,
+    ):
+        super().__init__(
+            input_width=input_width,
+            feature_columns=feature_columns,
+            label_columns=label_columns,
+        )
+        self.output_time_step = output_time_step
+        self.label_width = 1
+        self.shift = 1
+
+    def datasets(self, train_set=None, test_set=None):
+        self.datasets = {}
+        (
+            self.datasets["inputs_train"],
+            self.datasets["labels_train"],
+        ) = self.create_dataset(train_set)
+
+        (
+            self.datasets["inputs_test"],
+            self.datasets["labels_test"],
+        ) = self.create_dataset(test_set)
+
+        print(
+            "train_set inputs and labels shape:{}{}\n"
+            "test_set inputs and labels shape:{}{}".format(
+                self.datasets["inputs_train"].shape,
+                self.datasets["labels_train"].shape,
+                self.datasets["inputs_test"].shape,
+                self.datasets["labels_test"].shape,
+            )
+        )
+
+    def model_fit(self, model):
+        self.model = model.fit(
+            in_reshape(self.datasets["inputs_train"]),
+            in_reshape(self.datasets["labels_train"]),
+        )
+
+    def recursive_predictions(self, data="test"):
+
+        if self.number_input_features != self.number_label_features:
+            raise ValueError(
+                "The number of input and label features should "
+                "be equal for a recursive prediction"
+            )
+
+        output = np.array(
+            out_reshape(
+                self.model.predict(in_reshape(self.datasets["inputs_" + data])),
+                window=self,
+            )
+        )
+        dim1, dim2, dim3 = output.shape
+        predictions = np.zeros((dim1, self.output_time_step, dim3))
+        inputs = self.datasets["inputs_" + data]
+
+        for n in range(self.output_time_step):
+            prediction = np.array(
+                out_reshape(self.model.predict(in_reshape(inputs)), window=self)
+            )
+            predictions[:, n : n + 1, :] = prediction
+            inputs = inputs[:, -(self.input_width - 1) :, :]
+            inputs = np.concatenate((inputs, prediction), axis=1)
+        self.predictions = predictions[: (dim1 - self.output_time_step + 1), :, :]
+
+        labels_revived = np.zeros(self.predictions.shape)
+        for i in range(labels_revived.shape[0]):
+            labels_revived[i, :, :] = self.datasets["labels_" + data][
+                i : self.output_time_step + i, :, :
+            ].reshape(self.output_time_step, -1)
+        self.labels = labels_revived
+
+        return self.predictions, self.labels
+
+    def plot_forecast_recursive(self, data="test", plot_col="T (degC)", ax=None):
+
+        if ax is None:
+            ax = plt.gca()
+
+        self.recursive_predictions(data=data)
+        dim1 = self.datasets["inputs_" + data].shape[0]
+        input_data = self.datasets["inputs_" + data][
+            : (dim1 - self.output_time_step + 1), :, :
+        ]
+
+        if self.labels.shape[2] == 1:
+            label_col_index = 0
+        elif self.labels.shape[2] > 1:
+            label_col_index = self.label_columns.index(plot_col)
+        if input_data.shape[2] == 1:
+            input_col_index = 0
+        elif input_data.shape[2] > 1:
+            input_col_index = self.feature_columns.index(plot_col)
+
+        output_index_start = self.input_indices[-1] + 1
+
+        label_indices = np.arange(
+            output_index_start, self.output_time_step + output_index_start
+        )
+
+        ax.plot(
+            label_indices, self.labels[-1, :, label_col_index], "bo-", label="labels"
+        )
+        ax.plot(
+            self.input_indices,
+            input_data[-1, :, input_col_index],
+            "go-",
+            label="inputs",
+        )
+        ax.plot(
+            label_indices,
+            self.predictions[-1, :, label_col_index],
+            "ro",
+            label="prediction",
         )
         ax.legend(loc="best")
         ax.set_xlabel("time index")

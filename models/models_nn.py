@@ -329,10 +329,12 @@ class Direct_Forecast:
         ].shape
         self.prediction = np.zeros((dim1, self.output_time_step, dim2))
         self.labels = np.zeros((dim1, self.output_time_step, dim2))
+        print("preds and labels", self.prediction.shape, self.labels.shape)
         for i in range(self.output_time_step):
             j = self.output_time_step - i
             pred = np.array(self.predictions[data + "_" + str(i)])
             label = np.array(self.datasets["label_" + data + "_" + str(i)])
+            print(pred.shape, pred[: (pred.shape[0] - (j - 1)), :, :].shape)
             self.prediction[:, i : i + 1, :] = pred[: (pred.shape[0] - (j - 1)), :, :]
             self.labels[:, i : i + 1, :] = label[: (label.shape[0] - (j - 1)), :, :]
 
