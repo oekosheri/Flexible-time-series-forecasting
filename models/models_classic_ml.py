@@ -1,6 +1,4 @@
 import numpy as np
-import tensorflow as tf
-from tensorflow.keras import regularizers
 import matplotlib.pyplot as plt
 from data.create_datasets import WindowGenerator
 
