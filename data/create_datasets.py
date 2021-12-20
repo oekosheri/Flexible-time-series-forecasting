@@ -4,7 +4,7 @@ import numpy as np
 class WindowGenerator:
     def __init__(
         self,
-        input_width=24,
+        input_width=7,
         label_width=1,
         shift=1,
         feature_columns=None,
