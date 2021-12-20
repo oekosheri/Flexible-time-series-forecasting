@@ -6,6 +6,27 @@ from data.create_datasets import WindowGenerator
 
 
 def conv_model(window, filters=10, kernel_size=3, activation="elu"):
+
+    input_width = window.label_width + (kernel_size - 1)
+    if input_width != window.input_width:
+        raise ValueError(
+            "To predict window label width of {}, your input window width should be {}".format(
+                window.label_width, input_width
+            )
+        )
+    model = tf.keras.Sequential(
+        [
+            tf.keras.layers.Conv1D(
+                filters=filters, kernel_size=kernel_size, activation=activation
+            ),
+            tf.keras.layers.Dense(units=window.number_label_features, activation="elu"),
+        ]
+    )
+
+    return model
+
+
+def conv_flex_model(window, filters=10, kernel_size=3, activation="elu"):
     model = tf.keras.Sequential(
         [
             tf.keras.layers.Conv1D(
@@ -329,7 +350,6 @@ class Direct_Forecast:
         ].shape
         self.prediction = np.zeros((dim1, self.output_time_step, dim2))
         self.labels = np.zeros((dim1, self.output_time_step, dim2))
-        print("preds and labels", self.prediction.shape, self.labels.shape)
         for i in range(self.output_time_step):
             j = self.output_time_step - i
             pred = np.array(self.predictions[data + "_" + str(i)])

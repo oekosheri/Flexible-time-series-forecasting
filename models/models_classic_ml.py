@@ -36,13 +36,17 @@ class Direct_Forecast:
                 feature_columns=feature_columns,
             )
 
-    def datasets(self, train_set=None, test_set=None):
+    def datasets(self, train_set=None, valid_set=None, test_set=None):
         self.datasets = {}
         for i in range(self.output_time_step):
             (
                 self.datasets["input_train_" + str(i)],
                 self.datasets["label_train_" + str(i)],
             ) = self.windows[i].create_dataset(train_set)
+            (
+                self.datasets["input_val_" + str(i)],
+                self.datasets["label_val_" + str(i)],
+            ) = self.windows[i].create_dataset(valid_set)
             (
                 self.datasets["input_test_" + str(i)],
                 self.datasets["label_test_" + str(i)],
@@ -160,13 +164,15 @@ class Recursive_Forecast(WindowGenerator):
         self.label_width = 1
         self.shift = 1
 
-    def datasets(self, train_set=None, test_set=None):
+    def datasets(self, train_set=None, valid_set=None, test_set=None):
         self.datasets = {}
         (
             self.datasets["inputs_train"],
             self.datasets["labels_train"],
         ) = self.create_dataset(train_set)
-
+        self.datasets["inputs_val"], self.datasets["labels_val"] = self.create_dataset(
+            valid_set
+        )
         (
             self.datasets["inputs_test"],
             self.datasets["labels_test"],
@@ -174,9 +180,12 @@ class Recursive_Forecast(WindowGenerator):
 
         print(
             "train_set inputs and labels shape:{}{}\n"
+            "valid_set inputs and labels shape:{}{}\n"
             "test_set inputs and labels shape:{}{}".format(
                 self.datasets["inputs_train"].shape,
                 self.datasets["labels_train"].shape,
+                self.datasets["inputs_val"].shape,
+                self.datasets["labels_val"].shape,
                 self.datasets["inputs_test"].shape,
                 self.datasets["labels_test"].shape,
             )
