@@ -5,6 +5,10 @@ import matplotlib.pyplot as plt
 from data.create_datasets import WindowGenerator
 
 
+def naive_model(window, input_data=None):
+    return
+
+
 def conv_model(window, filters=10, kernel_size=3, activation="elu"):
 
     input_width = window.label_width + (kernel_size - 1)
@@ -354,11 +358,22 @@ class Direct_Forecast:
             j = self.output_time_step - i
             pred = np.array(self.predictions[data + "_" + str(i)])
             label = np.array(self.datasets["label_" + data + "_" + str(i)])
-            print(pred.shape, pred[: (pred.shape[0] - (j - 1)), :, :].shape)
             self.prediction[:, i : i + 1, :] = pred[: (pred.shape[0] - (j - 1)), :, :]
             self.labels[:, i : i + 1, :] = label[: (label.shape[0] - (j - 1)), :, :]
 
         return self.prediction, self.labels
+
+    def direct_future(self, data):
+
+        if not isinstance(data, np.ndarray):
+            raise ValueError("Data must be a three dimensional numpy array!")
+        forecast = np.zeros(
+            (1, self.output_time_step, self.windows[0].number_label_features)
+        )
+        for i in range(self.output_time_step):
+            forecast[:, i : i + 1, :] = self.models[i].predict(data)
+
+        return forecast
 
     def plot_forecast_direct(self, data="test", plot_col="T (degC)", ax=None):
 
@@ -498,6 +513,20 @@ class Recursive_Forecast(WindowGenerator):
         self.labels = labels_revived
 
         return self.predictions, self.labels
+
+    def recursive_future(self, data):
+
+        if not isinstance(data, np.ndarray):
+            raise ValueError("Data must be a three dimensional numpy array!")
+
+        forecast = np.zeros((1, self.output_time_step, self.number_label_features))
+
+        for i in range(self.output_time_step):
+            prediction = np.array(self.model.predict(data))
+            forecast[:, i : i + 1, :] = prediction
+            data = data[:, -(self.input_width - 1) :, :]
+            data = np.concatenate((data, prediction), axis=1)
+        return forecast
 
     def plot_forecast_recursive(self, data="test", plot_col="T (degC)", ax=None):
 

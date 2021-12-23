@@ -94,6 +94,20 @@ class Direct_Forecast:
 
         return self.prediction, self.labels
 
+    def direct_future(self, data):
+
+        if not isinstance(data, np.ndarray):
+            raise ValueError("Data must be a three dimensional numpy array!")
+        forecast = np.zeros(
+            (1, self.output_time_step, self.windows[0].number_label_features)
+        )
+        for i in range(self.output_time_step):
+            forecast[:, i : i + 1, :] = out_reshape(
+                self.models[i].predict(in_reshape(data)), window=self.windows[i]
+            )
+
+        return forecast
+
     def plot_forecast_direct(self, data="test", plot_col="T (degC)", ax=None):
 
         if ax is None:
@@ -232,6 +246,22 @@ class Recursive_Forecast(WindowGenerator):
         self.labels = labels_revived
 
         return self.predictions, self.labels
+
+    def recursive_future(self, data):
+
+        if not isinstance(data, np.ndarray):
+            raise ValueError("Data must be a three dimensional numpy array!")
+
+        forecast = np.zeros((1, self.output_time_step, self.number_label_features))
+
+        for i in range(self.output_time_step):
+            prediction = out_reshape(
+                np.array(self.model.predict(in_reshape(data))), window=self
+            )
+            forecast[:, i : i + 1, :] = prediction
+            data = data[:, -(self.input_width - 1) :, :]
+            data = np.concatenate((data, prediction), axis=1)
+        return forecast
 
     def plot_forecast_recursive(self, data="test", plot_col="T (degC)", ax=None):
 
