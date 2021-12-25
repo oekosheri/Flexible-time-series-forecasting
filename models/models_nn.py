@@ -5,8 +5,16 @@ import matplotlib.pyplot as plt
 from data.create_datasets import WindowGenerator
 
 
-def naive_model(window, input_data=None):
-    return
+def naive_model(window, X, y):
+
+    naive_forecast = np.zeros(y.shape)
+    for j, i in enumerate(window.label_columns):
+        a = X[:, -1, window.feature_columns.index(i)]
+        a = np.expand_dims(a, 1)
+        a = np.repeat(a, window.label_width, axis=1)
+        naive_forecast[:, :, j] = a
+
+    return naive_forecast
 
 
 def conv_model(window, filters=10, kernel_size=3, activation="elu"):
