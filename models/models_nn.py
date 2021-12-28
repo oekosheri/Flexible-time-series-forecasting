@@ -22,7 +22,7 @@ def conv_model(window, filters=10, kernel_size=3, activation="elu"):
     input_width = window.label_width + (kernel_size - 1)
     if input_width != window.input_width:
         raise ValueError(
-            "To predict window label width of {}, your input window width should be {}".format(
+            "To predict window label width of {} with your kernel size, your input window width should be {}".format(
                 window.label_width, input_width
             )
         )
@@ -31,7 +31,8 @@ def conv_model(window, filters=10, kernel_size=3, activation="elu"):
             tf.keras.layers.Conv1D(
                 filters=filters, kernel_size=kernel_size, activation=activation
             ),
-            tf.keras.layers.Dense(units=window.number_label_features, activation="elu"),
+            tf.keras.layers.Dense(units=filters, activation=activation),
+            tf.keras.layers.Dense(units=window.number_label_features),
         ]
     )
 
@@ -68,7 +69,7 @@ def conv_model_recursive_train(window, filters=10, kernel_s=3, activation="elu")
             "be equal for a recursive prediction"
         )
 
-    # global layers
+    # shared layers
 
     Input_layer = tf.keras.Input(
         shape=(window.input_width, window.number_input_features)
@@ -220,7 +221,7 @@ def compile_and_fit(
     y=None,
     val_X=None,
     val_y=None,
-    patience=5,
+    patience=10,
     batch_size=32,
     max_epochs=30,
 ):
@@ -322,7 +323,7 @@ class Direct_Forecast:
     #                                                              self.datasets["input_val_"+ str(i)].shape, self.datasets["label_val_"+ str(i)].shape,
     #                                                              self.datasets["input_test_"+ str(i)].shape, self.datasets["label_test_"+ str(i)].shape))
 
-    def model_fit(self, model, patience=5, batch_size=32, max_epochs=30):
+    def model_fit(self, model, patience=10, batch_size=32, max_epochs=30):
         self.models = {}
         self.history = {}
         self.predictions = {}
@@ -480,7 +481,7 @@ class Recursive_Forecast(WindowGenerator):
             )
         )
 
-    def model_fit(self, model, patience=5, batch_size=32, max_epochs=30):
+    def model_fit(self, model, patience=10, batch_size=32, max_epochs=30):
         self.model = model(window=self)
         self.history = compile_and_fit(
             self.model,
