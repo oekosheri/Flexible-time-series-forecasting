@@ -128,7 +128,17 @@ def LSTM_model_vec_out(window, units=10):
             tf.keras.layers.Reshape([window.label_width, window.number_label_features]),
         ]
     )
+    return model
 
+
+def LSTM_lambda_layer(window, units=10):
+    model = tf.keras.Sequential(
+        [
+            tf.keras.layers.LSTM(units, return_sequences=True),
+            tf.keras.layers.Dense(units=window.number_label_features),
+            tf.keras.layers.Lambda(lambda x: x[:, -window.label_width :, :]),
+        ]
+    )
     return model
 
 
