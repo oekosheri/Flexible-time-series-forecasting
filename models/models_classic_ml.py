@@ -16,6 +16,43 @@ def out_reshape(data, window=None):
     )
 
 
+def plot_forecast(
+    model, input_data=None, label_data=None, window=None, plot_col="T (degC)", ax=None
+):
+    if ax is None:
+        ax = plt.gca()
+
+    if plot_col not in (window.feature_columns and window.label_columns):
+        raise ValueError("The chosen plot column does not exist in input/label data!")
+
+    if label_data.shape[2] == 1:
+        label_col_index = 0
+    elif label_data.shape[2] > 1:
+        label_col_index = window.label_columns.index(plot_col)
+
+    if input_data.shape[2] == 1:
+        input_col_index = 0
+    elif input_data.shape[2] > 1:
+        input_col_index = window.feature_columns.index(plot_col)
+
+    preds = model.predict(in_reshape(input_data))
+    preds = out_reshape(preds, window=window)
+
+    ax.plot(
+        window.label_indices, label_data[-1, :, label_col_index], "bo-", label="labels"
+    )
+    ax.plot(
+        window.input_indices, input_data[-1, :, input_col_index], "go-", label="inputs"
+    )
+    ax.plot(
+        window.label_indices, preds[-1, :, label_col_index], "ro", label="predictions"
+    )
+    ax.legend(loc="best")
+    ax.set_xlabel("time index")
+    ax.set_ylabel(plot_col)
+    return
+
+
 class Direct_Forecast:
     def __init__(
         self,

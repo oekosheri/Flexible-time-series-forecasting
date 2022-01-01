@@ -286,8 +286,8 @@ def plot_forecast(
         window.label_indices, preds[-1, :, label_col_index], "ro", label="predictions"
     )
     ax.legend(loc="best")
-    ax.xlabel("time index")
-    ax.ylabel(plot_col)
+    ax.set_xlabel("time index")
+    ax.set_ylabel(plot_col)
     return
 
 
