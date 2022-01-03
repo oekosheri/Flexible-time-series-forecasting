@@ -1,0 +1,37 @@
+name: M1TS
+channels:
+  - conda-forge
+dependencies:
+  - ipython
+  - google-pasta
+  - tensorflow-estimator
+  - h5py
+  - grpcio
+  - termcolor
+  - keras-preprocessing
+  - python=3.8
+  - gast
+  - opt_einsum
+  - pip=20.2.4
+  - python-flatbuffers
+  - typing_extensions
+  - numpy=1.19
+  - astunparse
+  - absl-py
+  - wheel
+  - typeguard
+  - scipy
+  - protobuf
+  - wrapt
+  - matplotlib
+  - jupyter
+  - scikit-learn
+  - pandas
+  - nb_conda_kernels
+  - curl
+  - black
+  - isort
+  - jupyterlab_code_formatter
+  - nomkl
+  - statsmodels
+
