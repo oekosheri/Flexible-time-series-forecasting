@@ -6,6 +6,9 @@ from data.create_datasets import WindowGenerator
 
 
 def naive_model(window, X, y):
+    """
+    The base model that returns the last value of input data for all the forecast horizon
+    """
 
     naive_forecast = np.zeros(y.shape)
     for j, i in enumerate(window.label_columns):
@@ -18,6 +21,10 @@ def naive_model(window, X, y):
 
 
 def conv_model(window, filters=10, kernel_size=3, activation="elu"):
+    """
+    Simple conv model, first checks if given input width and kernel size,
+    output width can be predicted
+    """
 
     input_width = window.label_width + (kernel_size - 1)
     if input_width != window.input_width:
@@ -40,6 +47,9 @@ def conv_model(window, filters=10, kernel_size=3, activation="elu"):
 
 
 def conv_flex_model(window, filters=10, kernel_size=3, activation="elu"):
+    """
+    Flexible conv model in input/output size.
+    """
     model = tf.keras.Sequential(
         [
             tf.keras.layers.Conv1D(
@@ -53,8 +63,6 @@ def conv_flex_model(window, filters=10, kernel_size=3, activation="elu"):
             tf.keras.layers.Dense(
                 units=(window.label_width * window.number_label_features)
             ),
-            # Add back the time dimension.
-            # Shape: (outputs) => (1, outputs)
             tf.keras.layers.Reshape([window.label_width, window.number_label_features]),
         ]
     )
@@ -62,6 +70,11 @@ def conv_flex_model(window, filters=10, kernel_size=3, activation="elu"):
 
 
 def conv_model_recursive_train(window, filters=10, kernel_s=3, activation="elu"):
+
+    """
+    Conv model that is recursively trained to forecast multi-steps.
+    Uses tf.Keras functional API
+    """
 
     if window.number_input_features != window.number_label_features:
         raise ValueError(
@@ -119,6 +132,10 @@ def conv_model_recursive_train(window, filters=10, kernel_s=3, activation="elu")
 
 
 def LSTM_model(window, units=10):
+    """
+    Simplest LSTM model with an LSTM layer that returns only the last cell output.
+    forecasts any input/output size flexibly
+    """
     model = tf.keras.Sequential(
         [
             tf.keras.layers.LSTM(units, return_sequences=False),
@@ -132,6 +149,12 @@ def LSTM_model(window, units=10):
 
 
 def LSTM_lambda_layer(window, units=10):
+
+    """
+    LSTM model with LSTM layer that outputs all timesteps.
+    A lambda layer ensures the output size of interest.
+    """
+
     model = tf.keras.Sequential(
         [
             tf.keras.layers.LSTM(units, return_sequences=True),
@@ -143,6 +166,10 @@ def LSTM_lambda_layer(window, units=10):
 
 
 def LSTM_model_encoder_decoder(window, encoder_units=10, decoder_units=10):
+
+    """
+    LSTM model with 2 LSTM layers: a many to one and a one to many layers.
+    """
     model = tf.keras.Sequential(
         [
             tf.keras.layers.LSTM(encoder_units, return_sequences=False),
@@ -156,6 +183,11 @@ def LSTM_model_encoder_decoder(window, encoder_units=10, decoder_units=10):
 
 
 def LSTM_model_recursive_train(window, units=10):
+
+    """
+    LSTM model that is recursively trained to forecast multi-steps.
+    Uses tf.Keras functional API
+    """
 
     if window.number_input_features != window.number_label_features:
         raise ValueError(
@@ -204,6 +236,9 @@ def LSTM_model_recursive_train(window, units=10):
 
 
 def dense_model(window, units=10, activation="elu"):
+    """
+    Simple dense model felxible in input/output size.
+    """
 
     model = tf.keras.Sequential(
         [
@@ -259,6 +294,9 @@ def compile_and_fit(
 def plot_forecast(
     model, input_data=None, label_data=None, window=None, plot_col="T (degC)", ax=None
 ):
+    """plots input, label and prediction for the last example in
+    train, validation or test sets.
+    """
     if ax is None:
         ax = plt.gca()
 
@@ -292,6 +330,11 @@ def plot_forecast(
 
 
 class Direct_Forecast:
+    """
+    The direct strategy for multistep prediction. Instantiaties window generator for
+    multistep prediction. trains multiple independent single-step models.
+    """
+
     def __init__(
         self,
         output_time_step=15,
@@ -448,6 +491,11 @@ class Direct_Forecast:
 
 
 class Recursive_Forecast(WindowGenerator):
+    """
+    The recursive strategy for multistep prediction. Inheits from window generator.
+    recursively forecasts at prediction time.
+    """
+
     def __init__(
         self,
         output_time_step=15,

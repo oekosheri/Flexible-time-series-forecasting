@@ -19,6 +19,11 @@ def out_reshape(data, window=None):
 def plot_forecast(
     model, input_data=None, label_data=None, window=None, plot_col="T (degC)", ax=None
 ):
+    """
+    plots input, label and prediction for the last example in
+    train, validation or test sets. Uses auxiliary reshape functions to handle
+    3d data classic ML models.
+    """
     if ax is None:
         ax = plt.gca()
 
@@ -54,6 +59,13 @@ def plot_forecast(
 
 
 class Direct_Forecast:
+
+    """
+    The direct strategy for multistep prediction. Instantiaties window generator for
+    multistep prediction. trains multiple independent single-step models. Uses auxiliary reshape
+     functions to handle 3d data classic ML models.
+    """
+
     def __init__(
         self,
         output_time_step=15,
@@ -199,6 +211,12 @@ class Direct_Forecast:
 
 
 class Recursive_Forecast(WindowGenerator):
+    """
+    The recursive strategy for multistep prediction. Inheits from window generator.
+    recursively forecasts at prediction time. Uses auxiliary reshape functions to handle
+    3d data classic ML models.
+    """
+
     def __init__(
         self,
         output_time_step=15,
