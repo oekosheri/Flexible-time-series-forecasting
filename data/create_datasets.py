@@ -34,11 +34,13 @@ class WindowGenerator:
                 f"Total window size: {self.total_window_size}",
                 f"Input indices: {self.input_indices}",
                 f"Label indices: {self.label_indices}",
+                f"shift size: {self.shift}",
                 f"Label column name(s): {self.labels}",
                 f"Feature column name (s): {self.features}",
             ]
         )
 
+    # you can increase the stride especially for large datasets
     def create_dataset(self, data, stride=1, shuffle=False):
 
         # work out the column indices of data
