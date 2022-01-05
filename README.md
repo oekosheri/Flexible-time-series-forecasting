@@ -21,7 +21,7 @@ Ordinarily you can clone the repository, Cd into it, replicate my coding environ
 conda env create -f environment.yml
 ```
 but given I am using Apple arm and installing Tensorflow was less than trivial, the environment.yml file may not be reproduce my environment exactly.
-If you are using apple arm on Mac with Big Sur, now you can follow [these steps](https://github.com/apple/tensorflow_macos) to install Tensorflow optimized for apple silicon. For the rest of the installed libraries and packages the environmen.yml file should work fine.
+If you are using apple arm on Mac with Big Sur, now you can follow [these steps](https://github.com/apple/tensorflow_macos) to install Tensorflow optimized for apple silicon. For the rest of the installed libraries and packages in the environmen.yml file should work fine.
 Although I have noticed faster training speed, there are still bugs and issues with Tensorflow 2.4 on arm.
 
 Training some of the networks on this repository may be slow but you don't really need GPUs. If you wish to use apple silicon GPU power after installing Tensorflow do the following:
