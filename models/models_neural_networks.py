@@ -200,14 +200,11 @@ def LSTM_model_recursive_train(window, units=10):
         shape=(window.input_width, window.number_input_features)
     )
     LSTM_layer = tf.keras.layers.LSTM(units, return_state=True)
-    # LSTM_cell = tf.keras.layers.LSTMCell(LSTM_units)
-    # LSTM_RNN = tf.keras.layers.RNN(LSTM_cell, return_state=True)
     Reshape_layer = tf.keras.layers.Reshape((1, window.number_label_features))
     Dense_layer = tf.keras.layers.Dense(window.number_label_features)
 
     # warm up
     output, *state = LSTM_layer(Input_layer)
-    # output, *state = LSTM_RNN(Input_layer)
     prediction = Dense_layer(output)
 
     predictions = []
@@ -221,7 +218,6 @@ def LSTM_model_recursive_train(window, units=10):
         x = Reshape_layer(x)
         # Execute one lstm step.
         x, *state = LSTM_layer(x, initial_state=state)
-        # x, state = LSTM_cell(x, states=state)
         # Convert the lstm output to a prediction.
         prediction = Dense_layer(x)
         # Add the prediction to the output
