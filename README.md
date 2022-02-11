@@ -1,7 +1,7 @@
 # Flexible time series forecasting
-Codes for general purpose time series multivariate multi-step forecasting
+Codes for flexible time series multivariate multi-step forecasting using machine learning
 
-A general purpose time series forecasting repository for this medium article:
+A repository for this medium article:
 
 <a target="_blank" href="https://github-readme-medium-recent-article.vercel.app/medium/@shahrzadhadian/0"><img src="https://github-readme-medium-recent-article.vercel.app/medium/@shahrzadhadian/0" alt="Recent article #1"></a>
 
