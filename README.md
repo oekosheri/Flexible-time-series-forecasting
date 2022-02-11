@@ -1,7 +1,10 @@
 # Flexible time series forecasting
 Codes for general purpose time series multivariate multi-step forecasting
 
-A general purpose time series forecasting repository for this [medium article](https://medium.com/p/6e967f3c1e6b/edit).
+A general purpose time series forecasting repository for this medium article:
+
+<a target="_blank" href="https://github-readme-medium-recent-article.vercel.app/medium/@shahrzadhadian/0"><img src="https://github-readme-medium-recent-article.vercel.app/medium/@shahrzadhadian/0" alt="Recent article #1"></a>
+
 The [window generator class](./data/create_datasets.py) is a generalisation of the sliding window technique from [Tensorflow blog](https://www.tensorflow.org/tutorials/structured_data/time_series)
 in Numpy with more flexible input/output features. It formulates the series as a 3d supervised learning dataset.
 
